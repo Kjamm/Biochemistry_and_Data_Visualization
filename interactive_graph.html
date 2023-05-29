@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Plotly 인터랙티브 그래프</title>
+  <!-- Plotly 라이브러리 가져오기 -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+  <div id="myGraph"></div>
+
+  <script>
+    // 필요한 데이터 설정
+    var xData = [1, 2, 3, 4, 5];
+    var yData = [10, 15, 7, 12, 9];
+
+    // 데이터를 기반으로 그래프 생성
+    var trace = {
+      x: xData,
+      y: yData,
+      type: 'scatter', // 그래프 유형: 선 그래프
+    };
+
+    var data = [trace];
+
+    // 그래프 레이아웃 설정
+    var layout = {
+      title: '인터랙티브 선 그래프',
+      xaxis: {
+        title: 'X 축',
+        rangeselector: { // 줌 기능 추가
+          buttons: [
+            {
+              count: 1,
+              label: '1일',
+              step: 'day',
+              stepmode: 'backward'
+            },
+            {
+              count: 6,
+              label: '6일',
+              step: 'day',
+              stepmode: 'backward'
+            },
+            {
+              count: 1,
+              label: '1달',
+              step: 'month',
+              stepmode: 'backward'
+            },
+            {
+              count: 6,
+              label: '6달',
+              step: 'month',
+              stepmode: 'backward'
+            },
+            {
+              count: 1,
+              label: '1년',
+              step: 'year',
+              stepmode: 'backward'
+            },
+            {
+              step: 'all' // 전체 기간 보기
+            }
+          ]
+        },
+        rangeslider: {} // 패닝 기능 추가
+      },
+      yaxis: {
+        title: 'Y 축',
+      },
+      hovermode: 'closest' // 마우스 호버 기능 추가
+    };
+
+    // 그래프를 표시할 영역 선택
+    var graphDiv = document.getElementById('myGraph');
+
+    // 그래프 그리기
+    Plotly.newPlot(graphDiv, data, layout);
+  </script>
+</body>
+</html>

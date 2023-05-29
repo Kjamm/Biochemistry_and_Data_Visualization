@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>COVID-19 World Map</title>
+    <style>
+        #map {
+            height: 800px;
+            width: 100%;
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-ajax/dist/leaflet.ajax.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chroma-js@2.1.1/chroma.min.js"></script>
+    <script>
+        function fetchCountriesData() {
+            return fetch('https://disease.sh/v3/covid-19/countries')
+                .then(response => response.json());
+        }
+
+        function createChoroplethMap(countriesData) {
+            var map = L.map('map').setView([30, 0], 2);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+                maxZoom: 18,
+            }).addTo(map);
+
+            var minCases = Math.min(...countriesData.map(data => data.cases));
+            var maxCases = Math.max(...countriesData.map(data => data.cases));
+
+            var colorScale = chroma.scale(['white', 'red']).domain([minCases, maxCases]);
+
+            var geojsonLayer = new L.GeoJSON.AJAX("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json", {
+                style: function (feature) {
+                    var country = feature.properties.name;
+                    var countryData = countriesData.find(data => data.country === country);
+                    var cases = countryData ? countryData.cases : 0;
+                    var recovered = countryData ? countryData.recovered : 0;
+                    var deaths = countryData ? countryData.deaths : 0;
+
+                    var fillColor;
+                    if (cases > 0) {
+                        fillColor = colorScale(cases).hex();
+                    } else {
+                        fillColor = 'gray';
+                    }
+
+                    return {
+                        fillColor: fillColor,
+                        weight: 1,
+                        color: 'black',
+                        fillOpacity: 0.8
+                    };
+                },
+                onEachFeature: function (feature, layer) {
+                    var country = feature.properties.name;
+                    var countryData = countriesData.find(data => data.country === country);
+                    var cases = countryData ? countryData.cases.toLocaleString() : 'N/A';
+                    var recovered = countryData ? countryData.recovered.toLocaleString() : 'N/A';
+                    var deaths = countryData ? countryData.deaths.toLocaleString() : 'N/A';
+
+                    layer.bindPopup("<b>Country: </b>" + country + "<br><b>Cases: </b>" + cases + "<br><b>Recovered: </b>" + recovered + "<br><b>Deaths: </b>" + deaths);
+                }
+            }).addTo(map);
+        }
+
+        function initializeMap() {
+            fetchCountriesData()
+                .then(countriesData => {
+                    createChoroplethMap(countriesData);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        document.addEventListener("DOMContentLoaded", initializeMap);
+    </script>
+</head>
+<body>
+<div id="map"></div>
+</body>
+</html>
